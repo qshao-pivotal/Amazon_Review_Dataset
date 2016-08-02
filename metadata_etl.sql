@@ -1,4 +1,14 @@
-drop type metadata_type cascade;
+CREATE OR REPLACE FUNCTION read_from_s3()
+RETURNS integer AS
+'$libdir/gps3ext.so', 's3_import'
+LANGUAGE C STABLE;
+
+DROP PROTOCOL IF EXISTS s3;
+CREATE PROTOCOL s3 (readfunc = read_from_s3);
+
+CREATE LANGUAGE PLPYTHONU;
+
+drop type if exists metadata_type cascade;
 create type metadata_type as(
 asin text,
 salesRank text,
@@ -14,11 +24,12 @@ price numeric,
 brand text
 );
 
+
 CREATE OR REPLACE FUNCTION metadata_string_to_type (data text)
   RETURNS metadata_type
 AS $$
-  import ast
-  raw = ast.literal_eval(data)
+  #import ast
+  raw = eval(data)
   return [
   raw.get("asin"),
   raw.get("salesRank"),
@@ -35,18 +46,16 @@ AS $$
 $$ LANGUAGE plpythonu;
 
 
-
 drop external table if exists metadata_raw;
 create external table metadata_raw(
 content text
 )
-location('pxf://hdpnn:51200/data/metadata/?profile=HdfsTextSimple')
+location('s3://s3-external-1.amazonaws.com/pivotal-2015/qishao/amazon_reviews/metadata/ config=/home/gpadmin/s3.conf')
 format 'TEXT'(DELIMITER E'\001' ESCAPE 'OFF' NULL E'');
 
+
 drop table if exists metadata_cleaned;
-explain analyze
-create table metadata_cleaned 
-with()
+create table metadata_cleaned
 as (
     select (content).asin,
     (content).salesRank,
