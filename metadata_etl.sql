@@ -34,7 +34,7 @@ AS $$
   raw.get("asin"),
   raw.get("salesRank"),
   raw.get("imUrl"),
-  list(set([item for sublist in raw.get("categories",[]) for item in sublist if not item.strip()])),
+  list(set([item for sublist in raw.get("categories",[]) for item in sublist if item.strip()])),
   raw.get("title"),
   raw.get("description"),
   raw.get('related',{}).get("bought_together",[]),
@@ -50,7 +50,7 @@ drop external table if exists metadata_raw;
 create external table metadata_raw(
 content text
 )
-location('s3://s3-external-1.amazonaws.com/pivotal-2015/qishao/amazon_reviews/metadata/ config=/home/gpadmin/s3.conf')
+location('s3://s3.amazonaws.com/pivotal-2015/qishao/amazon_reviews/metadata/ config=/home/gpadmin/s3.conf')
 format 'TEXT'(DELIMITER E'\001' ESCAPE 'OFF' NULL E'');
 
 

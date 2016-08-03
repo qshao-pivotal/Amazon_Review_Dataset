@@ -34,7 +34,7 @@ drop external table if exists reviewdata_raw;
 create external table reviewdata_raw(
 content text
 )
-location('pxf://hdpnn:51200/data/reviewdata/?profile=HdfsTextSimple')
+location('s3://s3.amazonaws.com/pivotal-2015/qishao/amazon_reviews/reviewdata/ config=/home/gpadmin/s3.conf')
 format 'TEXT'(DELIMITER E'\001' ESCAPE 'OFF' NULL E'');
 
 drop table if exists reviewdata_cleaned;
@@ -45,6 +45,7 @@ create table reviewdata_cleaned as (
     (content).helpful,
     (content).reviewText,
     (content).overall,
+    (content).summary,
     to_timestamp((content).unixReviewTime::numeric) as review_timestamp,
     to_date((content).reviewTime,'MM DD,YYYY') as review_date
     from (
